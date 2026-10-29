@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "adapter": "ism_test:no_such_adapter",
+  "operation": "immersive_spellcraft:ars/glyph_craft",
+  "treatment": "perform",
+  "game": {"type": "immersive_spellcraft:sigil_inscription"}
+}

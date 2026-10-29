@@ -1,0 +1,50 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="${mod_authors}"
+logoFile="immersive_spellcraft_logo.png"
+description='''
+Magic is performed at the workstations you already use. Crafting a glyph at the Ars Nouveau Scribe's Table becomes a quill inscription, forging a scroll at the Iron's Spells 'n Spellbooks Scroll Forge becomes a focus-ink-seal forging, and pressing a glyph at the Ars 'n Spells Glyph Press becomes an embossing that runs inside the Press's own processing window. The native station always decides what is made and what it costs; your performance only decides how cleanly the physical work is done. Every integration is optional, and the mod loads safely with none of them installed.
+'''
+
+[[dependencies.${mod_id}]]
+    modId="forge"
+    mandatory=true
+    versionRange="${forge_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+# Optional integrations. The supported versions are checked at runtime (compat/IntegrationVersions): an unsupported
+# version leaves that mod's stations native and is reported by /immersivespellcraft integrations.
+[[dependencies.${mod_id}]]
+    modId="ars_nouveau"
+    mandatory=false
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="irons_spellbooks"
+    mandatory=false
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="ars_n_spells"
+    mandatory=false
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"

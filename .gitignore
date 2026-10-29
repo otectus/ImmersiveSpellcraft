@@ -1,0 +1,27 @@
+.gradle/
+build/
+run/
+run-gametest/
+run-data/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+logs/
+*.log
+__pycache__/
+src/generated/resources/.cache/
+# Integration jars used only for compiling and dev runs (never shipped)
+libs/
+out/
+bin/
+.vscode/
+*.ipr
+*.iws
+.DS_Store
+.env
+*.env
+# Built or vendored jars never committed; the Gradle wrapper is the one exception
+*.jar
+!gradle/wrapper/gradle-wrapper.jar

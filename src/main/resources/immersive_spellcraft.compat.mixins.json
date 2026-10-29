@@ -1,0 +1,15 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "com.otectus.immersivespellcraft.mixin.compat",
+  "plugin": "com.otectus.immersivespellcraft.compat.CompatMixinPlugin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "immersive_spellcraft.refmap.json",
+  "mixins": [
+    "ars.ScribesTileMixin",
+    "ans.GlyphPressBlockEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

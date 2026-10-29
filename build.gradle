@@ -1,0 +1,170 @@
+buildscript {
+    repositories { maven { url = 'https://maven.minecraftforge.net/' }; mavenCentral() }
+    dependencies { classpath 'org.spongepowered:mixingradle:0.7.38' }
+}
+plugins {
+    id 'eclipse'
+    id 'net.minecraftforge.gradle' version '6.0.54'
+}
+apply plugin: 'org.spongepowered.mixin'
+
+version = mod_version
+group = mod_group
+base { archivesName = mod_archive }
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+// Runtime profiles. Every integration is compileOnly; a profile decides which target mods actually load in a dev run:
+//   (none)                      core only, no target mods
+//   -Pwith=ars | irons | ans    any comma-separated combination; ans always brings Ars (its own hard dependency)
+//   -Pwith=all                  Ars Nouveau + Iron's + Ars 'n Spells
+//   -PironsVersion=315          Iron's 1.20.1-3.15.0 instead of 3.16.3, for compilation and runtime alike
+// Each profile runs in its own directory (run/<profile>, run-gametest/<profile>): a world written with a mod loaded
+// cannot be decoded once that mod's registries are gone, so profiles never share a world.
+def wanted = (project.findProperty('with') ?: '').toString().split(',')*.trim().findAll { it }
+if (wanted.contains('all')) wanted = ['ars', 'irons', 'ans']
+def withAns = wanted.contains('ans')
+def withArs = wanted.contains('ars') || withAns
+def withIrons = wanted.contains('irons')
+def irons315 = (project.findProperty('ironsVersion') ?: '316').toString() == '315'
+def ironsFile = irons315 ? irons_315_file : irons_316_file
+def profileParts = []
+if (withArs) profileParts << 'ars'
+if (withIrons) profileParts << (irons315 ? 'irons315' : 'irons316')
+if (withAns) profileParts << 'ans'
+def profileName = profileParts.isEmpty() ? 'core' : profileParts.join('-')
+ext.runProfile = profileName
+
+mixin {
+    add sourceSets.main, "${mod_id}.refmap.json"
+    config "${mod_id}.mixins.json"
+    config "${mod_id}.compat.mixins.json"
+}
+
+sourceSets {
+    // GameTests (src/gameTest): native parity, interruption and abuse checks per adapter, plus the profile check
+    // that proves the requested target mods really loaded. Added to the mod only for runGameTestServer.
+    gameTest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+    // Test-only client agent (src/smokeTest): opens every practice game on the title screen, plays it with the
+    // demonstration inputs, saves screenshots and a result file, then quits. Used by runClient -PsmokeTest only.
+    smokeTest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+
+minecraft {
+    mappings channel: 'official', version: minecraft_version
+    copyIdeResources = true
+    runs {
+        configureEach {
+            workingDirectory project.file("run/${profileName}")
+            property 'forge.logging.console.level', 'info'
+            property 'forge.enabledGameTestNamespaces', mod_id
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            property 'immersive_spellcraft.expectedProfile', profileName
+            // -PcoverageExport=<file> writes the runtime coverage manifest once the server has started.
+            if (project.hasProperty('coverageExport')) property 'immersive_spellcraft.coverage.export', project.property('coverageExport')
+            mods { immersive_spellcraft { source sourceSets.main } }
+        }
+        client {
+            if (project.hasProperty('smokeTest')) {
+                property 'immersive_spellcraft.smoketest.output', file("run/${profileName}/smoketest").absolutePath
+                mods { immersive_spellcraft_smoketest { source sourceSets.smokeTest } }
+            }
+        }
+        server { args '--nogui' }
+        gameTestServer {
+            workingDirectory project.file("run-gametest/${profileName}")
+            mods { immersive_spellcraft { source sourceSets.gameTest } }
+        }
+    }
+}
+
+repositories {
+    maven {
+        name = 'CurseMaven'
+        url = 'https://cursemaven.com'
+        content { includeGroup 'curse.maven' }
+    }
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+    maven { name = 'Illusive Soulworks'; url = 'https://maven.theillusivec4.top/' }
+    maven { name = 'GeckoLib'; url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
+    maven { name = 'KosmX'; url = 'https://maven.kosmx.dev/' }
+    // Ars 'n Spells 3.4.0 (the user's own mod) is read from libs/, which is git-ignored and never shipped.
+    flatDir { dirs 'libs' }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    // Integration APIs. Reached only from compat/<mod>/ after CompatibilityBootstrap confirms the mod and its version.
+    compileOnly fg.deobf("curse.maven:${ars_nouveau_project}:${ars_nouveau_file}")
+    compileOnly fg.deobf("curse.maven:${irons_project}:${ironsFile}")
+    compileOnly fg.deobf("blank:ars_n_spells:${ans_version}")
+    // Ars and Iron's expose GeckoLib and Curios types in the signatures the adapters touch.
+    compileOnly fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
+    compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}:api")
+
+    if (withArs || withIrons) {
+        runtimeOnly fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
+        runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}")
+    }
+    if (withArs) runtimeOnly fg.deobf("curse.maven:${ars_nouveau_project}:${ars_nouveau_file}")
+    if (withIrons) {
+        runtimeOnly fg.deobf("curse.maven:${irons_project}:${ironsFile}")
+        runtimeOnly fg.deobf("dev.kosmx.player-anim:player-animation-lib-forge:${playeranimator_version}")
+        if (!irons315) runtimeOnly fg.deobf("maven.modrinth:irons-lib:${irons_lib_version}")
+    }
+    if (withAns) {
+        runtimeOnly fg.deobf("blank:ars_n_spells:${ans_version}")
+        // ANS ships MixinExtras inside its release jar (jar-in-jar); the slim jar used in dev needs it on the classpath.
+        runtimeOnly "io.github.llamalad7:mixinextras-forge:${mixinextras_version}"
+    }
+
+    // The performance simulations (minigame/) have no Minecraft imports and are unit-tested with plain JUnit.
+    testImplementation "org.junit.jupiter:junit-jupiter:${junit_version}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junit_platform_version}"
+}
+
+test {
+    useJUnitPlatform()
+    testLogging { events 'failed'; exceptionFormat 'full' }
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    def properties = [mod_id: mod_id, mod_name: mod_name, mod_version: mod_version, mod_license: mod_license,
+                      mod_authors: mod_authors, minecraft_version_range: minecraft_version_range,
+                      forge_version_range: forge_version_range, loader_version_range: loader_version_range]
+    inputs.properties properties
+    filesMatching('META-INF/mods.toml') { expand properties }
+}
+
+tasks.named('processSmokeTestResources', ProcessResources).configure {
+    inputs.properties mod_version: mod_version, mod_license: mod_license
+    filesMatching('META-INF/mods.toml') { expand mod_version: mod_version, mod_license: mod_license }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('jar', Jar).configure {
+    manifest.attributes('Specification-Title': mod_id, 'Specification-Vendor': mod_authors,
+                        'Specification-Version': '1', 'Implementation-Title': project.name,
+                        'Implementation-Version': mod_version, 'Implementation-Vendor': mod_authors,
+                        'MixinConfigs': "${mod_id}.mixins.json,${mod_id}.compat.mixins.json")
+    finalizedBy 'reobfJar'
+}
+
+// Prints the active run profile, so a log can always be matched to the mods it ran with.
+tasks.register('printRunProfile') {
+    doLast { println "Immersive Spellcraft run profile: ${profileName}" }
+}

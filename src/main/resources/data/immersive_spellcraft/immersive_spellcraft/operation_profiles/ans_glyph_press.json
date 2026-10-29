@@ -1,0 +1,27 @@
+{
+  "comment": "Glyph Embossing for Ars 'n Spells Glyph Press jobs. Runs inside the Press's own processing window; Press terms are set by ANS data, never here.",
+  "schema_version": 1,
+  "priority": 0,
+  "adapter": "immersive_spellcraft:ans_glyph_press",
+  "operation": "immersive_spellcraft:ans/glyph_press",
+  "selector": {
+    "blocks": ["ars_n_spells:glyph_press"]
+  },
+  "treatment": "perform",
+  "game": {
+    "type": "immersive_spellcraft:glyph_embossing",
+    "min_actions": 3,
+    "max_actions": 3,
+    "target_duration_seconds": 7,
+    "max_duration_seconds": 25,
+    "timing_assist_allowed": true
+  },
+  "outcome": {
+    "policy": "native_exact",
+    "persistent_grade": false
+  },
+  "presentation": {
+    "theme": "immersive_spellcraft:ans_press",
+    "instruction_key": "immersive_spellcraft.game.glyph_embossing.instruction"
+  }
+}

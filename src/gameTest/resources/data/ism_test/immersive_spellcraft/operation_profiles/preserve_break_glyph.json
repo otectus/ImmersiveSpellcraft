@@ -1,0 +1,9 @@
+{
+  "comment": "Test datapack: an exact recipe override that keeps one glyph recipe native, used as the native parity reference.",
+  "schema_version": 1,
+  "priority": 0,
+  "adapter": "immersive_spellcraft:ars_scribe",
+  "operation": "immersive_spellcraft:ars/glyph_craft",
+  "selector": {"recipes": ["ars_nouveau:glyph_break"]},
+  "treatment": "preserve"
+}

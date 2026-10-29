@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "adapter": "immersive_spellcraft:irons_scroll_forge",
+  "operation": "immersive_spellcraft:irons/scroll_forge",
+  "treatment": "perform",
+  "game": {"type": "immersive_spellcraft:scroll_forging"},
+  "outcome": {"policy": "native_exact", "persistent_grade": true}
+}

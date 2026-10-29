@@ -1,0 +1,27 @@
+{
+  "comment": "Scroll Forging for every scroll taken from the Iron's Scroll Forge. The forge's own take consumes 1 ink, 1 paper and 1 focus.",
+  "schema_version": 1,
+  "priority": 0,
+  "adapter": "immersive_spellcraft:irons_scroll_forge",
+  "operation": "immersive_spellcraft:irons/scroll_forge",
+  "selector": {
+    "blocks": ["irons_spellbooks:scroll_forge"]
+  },
+  "treatment": "perform",
+  "game": {
+    "type": "immersive_spellcraft:scroll_forging",
+    "min_actions": 3,
+    "max_actions": 3,
+    "target_duration_seconds": 8,
+    "max_duration_seconds": 20,
+    "timing_assist_allowed": true
+  },
+  "outcome": {
+    "policy": "native_exact",
+    "persistent_grade": false
+  },
+  "presentation": {
+    "theme": "immersive_spellcraft:irons_forge",
+    "instruction_key": "immersive_spellcraft.game.scroll_forging.instruction"
+  }
+}

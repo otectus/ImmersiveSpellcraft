@@ -1,0 +1,28 @@
+{
+  "comment": "Sigil Inscription for every glyph recipe at the Ars Nouveau Scribe's Table. Costs come from the native recipe.",
+  "schema_version": 1,
+  "priority": 0,
+  "adapter": "immersive_spellcraft:ars_scribe",
+  "operation": "immersive_spellcraft:ars/glyph_craft",
+  "selector": {
+    "blocks": ["ars_nouveau:scribes_table"],
+    "recipe_types": ["ars_nouveau:glyph"]
+  },
+  "treatment": "perform",
+  "game": {
+    "type": "immersive_spellcraft:sigil_inscription",
+    "min_actions": 3,
+    "max_actions": 6,
+    "target_duration_seconds": 8,
+    "max_duration_seconds": 20,
+    "timing_assist_allowed": true
+  },
+  "outcome": {
+    "policy": "native_exact",
+    "persistent_grade": false
+  },
+  "presentation": {
+    "theme": "immersive_spellcraft:ars_source",
+    "instruction_key": "immersive_spellcraft.game.sigil_inscription.instruction"
+  }
+}
